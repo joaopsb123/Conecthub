@@ -1,4 +1,4 @@
-// Arquivo: script.js (FINALIZADO com credenciais)
+// Arquivo: script.js (FINALIZADO com credenciais e Tabela: 'todos')
 
 // --- CONFIGURAÇÃO DO SUPABASE ---
 const SUPABASE_URL = 'https://nkidvwxkzhvscsisztsa.supabase.co'; 
@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const postButton = document.getElementById('post-button');
     const postTextarea = document.getElementById('post-text');
     const feed = document.getElementById('feed');
+    // NOME DA TABELA AJUSTADO PARA 'todos'
+    const TABLE_NAME = 'todos'; 
 
     // Função de utilidade para criar a estrutura HTML de um post
     function createPostElement(post) {
@@ -38,16 +40,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. CARREGAR POSTS EXISTENTES AO INICIAR ---
     async function loadInitialPosts() {
-        // Pega os 50 posts mais recentes
+        // Busca na tabela 'todos'
         const { data: posts, error } = await supabase
-            .from('posts')
+            .from(TABLE_NAME)
             .select('*')
             .order('created_at', { ascending: false }) 
             .limit(50);
 
         if (error) {
             console.error('Erro ao carregar posts:', error);
-            feed.innerHTML = '<p>Erro ao carregar o feed. Verifique se a tabela `posts` está configurada no Supabase.</p>';
+            feed.innerHTML = `<p>Erro ao carregar o feed. Verifique se a tabela \`${TABLE_NAME}\` existe e tem a política RLS de SELECT (TRUE).</p>`;
             return;
         }
 
@@ -60,24 +62,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 2. FUNCIONALIDADE DE POSTAGEM (INSERIR NO BANCO) ---
     postButton.addEventListener('click', async () => {
         const content = postTextarea.value.trim();
-        // Usamos um nome de usuário fixo, pois não há sistema de login
         const fixedUsername = '@ConectaHubUser'; 
 
         if (content) {
-            // Insere o novo post no Supabase
+            // Insere na tabela 'todos'
             const { error } = await supabase
-                .from('posts')
+                .from(TABLE_NAME)
                 .insert([
-                    { username: fixedUsername, content: content }
+                    { username: fixedUsername, content: content, likes: 0 } 
+                    // Assumindo que 'todos' tem as colunas 'username', 'content' e 'likes'
                 ]);
 
             if (error) {
                 console.error('Erro ao publicar:', error);
-                alert('Não foi possível publicar. Verifique o console para mais detalhes.');
+                alert('Não foi possível publicar. O erro é provavelmente uma FALHA na RLS de INSERT. Verifique o console.');
                 return;
             }
 
-            // Limpa a caixa de texto
             postTextarea.value = '';
             
         } else {
@@ -91,13 +92,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const postCard = button.closest('.post-card');
         const postId = parseInt(postCard.dataset.id);
 
-        // Extrai e incrementa o contador de likes
         let currentLikes = parseInt(button.textContent.match(/\((\d+)\)/)[1]);
         let newLikes = currentLikes + 1;
         
-        // Atualiza a contagem de likes no Supabase
+        // Atualiza na tabela 'todos'
         const { error } = await supabase
-            .from('posts')
+            .from(TABLE_NAME)
             .update({ likes: newLikes })
             .eq('id', postId);
 
@@ -105,22 +105,20 @@ document.addEventListener('DOMContentLoaded', () => {
              console.error('Erro ao curtir:', error);
              return;
         }
-        
-        // O restante da atualização do DOM será tratado pelo módulo de Tempo Real (Realtime)
     }
 
     // --- 4. TEMPO REAL (ASSINATURA DO SUPABASE) ---
     function subscribeToRealtime() {
-        // Escuta qualquer mudança (INSERT, UPDATE) na tabela 'posts'
+        // Assina mudanças na tabela 'todos'
         supabase
-            .channel('public:posts') 
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, (payload) => {
+            .channel(`public:${TABLE_NAME}`) 
+            .on('postgres_changes', { event: '*', schema: 'public', table: TABLE_NAME }, (payload) => {
                 
                 if (payload.eventType === 'INSERT') {
                     // Novo post inserido
                     const newPost = payload.new;
                     const postElement = createPostElement(newPost);
-                    feed.prepend(postElement); // Adiciona no topo
+                    feed.prepend(postElement); 
                     
                 } else if (payload.eventType === 'UPDATE') {
                     // Post existente foi atualizado (ex: um like)
@@ -138,8 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .subscribe();
     }
     
-    // Inicia o carregamento e a escuta em tempo real
     loadInitialPosts();
     subscribeToRealtime();
 });
-            
+        
