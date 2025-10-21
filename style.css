@@ -1,0 +1,125 @@
+/* Arquivo: style.css */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5; /* Cor de fundo suave */
+    margin: 0;
+    padding: 0;
+    color: #1c1e21;
+}
+
+header {
+    background-color: #42b72a; /* Verde do "hub" */
+    color: white;
+    padding: 15px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    margin-left: 20px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin-right: 20px;
+    font-weight: 500;
+}
+
+.container {
+    width: 90%;
+    max-width: 700px;
+    margin: 20px auto;
+}
+
+/* Estilo para a caixa de novo post */
+.new-post-box {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px;
+}
+
+.new-post-box textarea {
+    width: 100%;
+    border: 1px solid #ccd0d5;
+    border-radius: 6px;
+    padding: 10px;
+    resize: vertical;
+    min-height: 80px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+.new-post-box button {
+    background-color: #1877f2; /* Azul para o botão de ação */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.new-post-box button:hover {
+    background-color: #165ab7;
+}
+
+/* Estilo para os cards de posts no feed */
+.post-card {
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    margin-bottom: 15px;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.post-header img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.username {
+    font-weight: bold;
+    color: #1877f2;
+}
+
+.post-content {
+    margin: 0 0 10px 0;
+    line-height: 1.4;
+}
+
+.like-button {
+    background: none;
+    border: none;
+    color: #606770;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.like-button:hover {
+    color: #1877f2;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 30px;
+    color: #606770;
+    font-size: 14px;
+}
