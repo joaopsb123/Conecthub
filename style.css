@@ -1,125 +1,74 @@
-/* Arquivo: style.css */
-
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5; /* Cor de fundo suave */
-    margin: 0;
-    padding: 0;
-    color: #1c1e21;
+  font-family: Arial, sans-serif;
+  background: #121212;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  padding: 30px;
 }
 
-header {
-    background-color: #42b72a; /* Verde do "hub" */
-    color: white;
-    padding: 15px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+#app {
+  width: 400px;
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(255,255,255,0.1);
 }
 
-.logo {
-    font-size: 24px;
-    font-weight: bold;
-    margin-left: 20px;
+input {
+  width: 100%;
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
 }
 
-nav a {
-    color: white;
-    text-decoration: none;
-    margin-right: 20px;
-    font-weight: 500;
+button {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  background: #00bfa6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-.container {
-    width: 90%;
-    max-width: 700px;
-    margin: 20px auto;
+button:hover {
+  background: #00a38f;
 }
 
-/* Estilo para a caixa de novo post */
-.new-post-box {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    margin-bottom: 20px;
+.hidden {
+  display: none;
 }
 
-.new-post-box textarea {
-    width: 100%;
-    border: 1px solid #ccd0d5;
-    border-radius: 6px;
-    padding: 10px;
-    resize: vertical;
-    min-height: 80px;
-    box-sizing: border-box;
-    margin-bottom: 10px;
+.user-item {
+  padding: 6px;
+  margin: 3px 0;
+  background: #333;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
-.new-post-box button {
-    background-color: #1877f2; /* Azul para o botão de ação */
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s;
+.user-item:hover {
+  background: #444;
 }
 
-.new-post-box button:hover {
-    background-color: #165ab7;
+#messages {
+  height: 200px;
+  overflow-y: auto;
+  background: #222;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
 }
 
-/* Estilo para os cards de posts no feed */
-.post-card {
-    background-color: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    margin-bottom: 15px;
+.me {
+  text-align: right;
+  color: #00bfa6;
 }
 
-.post-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.post-header img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-.username {
-    font-weight: bold;
-    color: #1877f2;
-}
-
-.post-content {
-    margin: 0 0 10px 0;
-    line-height: 1.4;
-}
-
-.like-button {
-    background: none;
-    border: none;
-    color: #606770;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.like-button:hover {
-    color: #1877f2;
-}
-
-footer {
-    text-align: center;
-    padding: 20px;
-    margin-top: 30px;
-    color: #606770;
-    font-size: 14px;
+.them {
+  text-align: left;
+  color: #fff;
 }
