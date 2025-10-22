@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Rede Social — Chat</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rede Social Moderna</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="app">
+    <!-- SIDEBAR / MENU -->
     <aside class="sidebar">
       <div class="brand">
         <h1>🔥 Rede</h1>
         <button id="themeToggle" title="Alternar tema">🌗</button>
       </div>
 
+      <!-- LOGIN / CADASTRO -->
       <div id="auth-box">
-        <input id="email" type="email" placeholder="Email" />
-        <input id="password" type="password" placeholder="Senha" />
-        <input id="displayName" type="text" placeholder="Nome (ex: João)" />
+        <input id="email" type="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Senha">
+        <input id="displayName" type="text" placeholder="Nome">
         <textarea id="bio" placeholder="Bio (opcional)"></textarea>
         <div class="row">
           <button id="signupBtn">Criar conta</button>
@@ -25,58 +27,70 @@
         </div>
       </div>
 
+      <!-- USUÁRIO LOGADO -->
       <div id="user-panel" class="hidden">
         <div class="me">
-          <img id="userPic" src="https://i.imgur.com/8Km9tLL.png" class="avatar" />
+          <img id="userPic" src="https://i.imgur.com/8Km9tLL.png" class="avatar">
           <div>
             <div id="userName" class="name">Usuário</div>
             <div id="userEmailLabel" class="small">email</div>
           </div>
         </div>
-        <input id="profilePic" type="file" accept="image/*" />
+        <input id="profilePic" type="file" accept="image/*,video/*">
         <div class="row">
           <button id="logoutBtn">Sair</button>
         </div>
 
         <div class="tabs">
-          <button id="tabFriends" class="active">Amigos</button>
-          <button id="tabUsers">Descobrir</button>
-          <button id="tabChats">Conversas</button>
+          <button id="tabFeed" class="active">Feed</button>
+          <button id="tabVideos">Reels</button>
+          <button id="tabChats">Chats</button>
+          <button id="tabUsers">Usuários</button>
         </div>
-
-        <div id="friendsList" class="list"></div>
-        <div id="usersList" class="list hidden"></div>
-        <div id="chatsList" class="list hidden"></div>
       </div>
     </aside>
 
+    <!-- MAIN -->
     <main class="main">
-      <div id="placeholder" class="welcome">
-        <h2>Bem-vindo à tua Rede</h2>
-        <p>Escolhe um amigo, inicia uma conversa e vê as mensagens em tempo real.</p>
-      </div>
+      <!-- FEED DE POSTS -->
+      <section id="feedSection" class="feed-section">
+        <div id="placeholder" class="welcome">
+          <h2>Bem-vindo à rede</h2>
+          <p>Veja fotos, vídeos e converse com seus amigos.</p>
+        </div>
+        <div id="feedPosts" class="feed-posts"></div>
+      </section>
 
+      <!-- FEED DE VÍDEOS -->
+      <section id="videoSection" class="feed-section hidden">
+        <div id="feedVideos" class="feed-posts"></div>
+      </section>
+
+      <!-- CHAT -->
       <section id="chatBox" class="chat hidden">
         <header class="chat-header">
           <div class="chat-with">
-            <img id="chatWithPic" class="avatar" src="https://i.imgur.com/8Km9tLL.png" />
+            <img id="chatWithPic" class="avatar" src="https://i.imgur.com/8Km9tLL.png">
             <div>
               <div id="chatWithName" class="name">Nome</div>
               <div id="statusText" class="small">offline</div>
             </div>
           </div>
         </header>
-
         <div id="messages" class="messages"></div>
-
         <div class="composer">
-          <input id="messageInput" type="text" placeholder="Escreve uma mensagem..." />
+          <input id="messageInput" type="text" placeholder="Escreve uma mensagem...">
           <button id="sendMsg">Enviar</button>
         </div>
+      </section>
+
+      <!-- LISTA DE USUÁRIOS -->
+      <section id="usersSection" class="feed-section hidden">
+        <div id="usersList" class="list"></div>
       </section>
     </main>
   </div>
 
   <script type="module" src="script.js"></script>
 </body>
-              </html>
+</html>
