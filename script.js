@@ -1,19 +1,19 @@
-// script.js - Versão melhorada: sincronização, nomes em mensagens, amigos robustos, conversas
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
-  getFirestore, collection, doc, setDoc, getDoc, getDocs,
-  query, where, orderBy, addDoc, updateDoc, onSnapshot,
-  serverTimestamp, arrayUnion, arrayRemove
+  getFirestore, doc, setDoc, getDoc, getDocs,
+  collection, query, where, orderBy, addDoc,
+  updateDoc, onSnapshot, serverTimestamp,
+  arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import {
-  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged
+  getAuth, createUserWithEmailAndPassword,
+  signInWithEmailAndPassword, signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getStorage, ref, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-/* ---------------- CONFIG FIREBASE ---------------- */
+/* ---------- CONFIG FIREBASE ---------- */
 const firebaseConfig = {
   apiKey: "AIzaSyBI_4n8aBT9ZPiLy8cwgiQDtD0_CYSKk4E",
   authDomain: "videot-2fcec.firebaseapp.com",
@@ -29,7 +29,9 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-/* ---------------- ELEMENTOS ---------------- */
+/* ---------- ELEMENTOS ---------- */
+const authBox = document.getElementById("auth-box");
+const userPanel = document.getElementById("user-panel");
 const emailEl = document.getElementById("email");
 const passEl = document.getElementById("password");
 const displayNameEl = document.getElementById("displayName");
@@ -37,13 +39,10 @@ const bioEl = document.getElementById("bio");
 const signupBtn = document.getElementById("signupBtn");
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
-const authBox = document.getElementById("auth-box");
-const userPanel = document.getElementById("user-panel");
+const profilePicInput = document.getElementById("profilePic");
 const userPic = document.getElementById("userPic");
 const userNameLabel = document.getElementById("userName");
 const userEmailLabel = document.getElementById("userEmailLabel");
-const profilePicInput = document.getElementById("profilePic");
-const themeToggle = document.getElementById("themeToggle");
 
 const tabFriends = document.getElementById("tabFriends");
 const tabUsers = document.getElementById("tabUsers");
@@ -60,62 +59,61 @@ const statusText = document.getElementById("statusText");
 const messagesDiv = document.getElementById("messages");
 const messageInput = document.getElementById("messageInput");
 const sendMsgBtn = document.getElementById("sendMsg");
+const themeToggle = document.getElementById("themeToggle");
 
+/* ---------- VARIÁVEIS ---------- */
 let currentUser = null;
 let currentUserData = null;
 let selectedUser = null;
-let messagesUnsubscribe = null;
-let friendsUnsubscribe = null;
-let chatsUnsubscribe = null;
+let unsubMessages = null;
+let unsubFriends = null;
+let unsubChats = null;
 
-/* ---------------- TEMA ---------------- */
+/* ---------- TEMA ---------- */
 themeToggle.onclick = () => {
   document.body.classList.toggle("light");
   localStorage.setItem("theme", document.body.classList.contains("light") ? "light" : "dark");
 };
 if (localStorage.getItem("theme") === "light") document.body.classList.add("light");
 
-/* ---------------- AUTENTICAÇÃO ---------------- */
+/* ---------- AUTENTICAÇÃO ---------- */
 signupBtn.onclick = async () => {
+  const email = emailEl.value.trim();
+  const pass = passEl.value;
+  if (!email || !pass) return alert("Preenche email e senha!");
   try {
-    const email = emailEl.value.trim();
-    const pass = passEl.value;
-    if (!email || !pass) throw new Error("Preenche email e senha.");
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     const uid = cred.user.uid;
-    const profile = {
+    await setDoc(doc(db, "users", uid), {
       email,
-      displayName: displayNameEl.value.trim() || email.split("@")[0],
+      displayName: displayNameEl.value || email.split("@")[0],
       bio: bioEl.value || "",
       photoURL: "",
       online: true,
       friends: [],
       createdAt: serverTimestamp(),
       lastActive: serverTimestamp()
-    };
-    await setDoc(doc(db, "users", uid), profile);
-  } catch (err) {
-    alert(err.message);
+    });
+  } catch (e) {
+    alert(e.message);
   }
 };
 
 loginBtn.onclick = async () => {
   try {
     await signInWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
-  } catch (err) {
-    alert(err.message);
+  } catch (e) {
+    alert("Erro ao entrar: " + e.message);
   }
 };
 
 logoutBtn.onclick = async () => {
-  if (currentUser) {
-    // marca offline
-    await updateDoc(doc(db, "users", currentUser.uid), { online: false, lastActive: serverTimestamp() }).catch(()=>{});
-  }
-  signOut(auth);
+  if (currentUser)
+    await updateDoc(doc(db, "users", currentUser.uid), { online: false, lastActive: serverTimestamp() }).catch(() => {});
+  await signOut(auth);
 };
 
-/* ---------------- ON AUTH CHANGE ---------------- */
+/* ---------- ESTADO DE LOGIN ---------- */
 onAuthStateChanged(auth, async (u) => {
   if (u) {
     currentUser = u;
@@ -123,241 +121,201 @@ onAuthStateChanged(auth, async (u) => {
     userPanel.classList.remove("hidden");
     userEmailLabel.textContent = u.email;
 
-    const uSnap = await getDoc(doc(db, "users", u.uid));
-    currentUserData = uSnap.exists() ? uSnap.data() : null;
-    userNameLabel.textContent = currentUserData?.displayName || (u.email.split("@")[0]);
-    if (currentUserData?.photoURL) userPic.src = currentUserData.photoURL;
+    const snap = await getDoc(doc(db, "users", u.uid));
+    currentUserData = snap.exists() ? snap.data() : {};
+    userNameLabel.textContent = currentUserData.displayName || u.email.split("@")[0];
+    if (currentUserData.photoURL) userPic.src = currentUserData.photoURL;
 
-    // marca online
-    await updateDoc(doc(db, "users", u.uid), { online: true, lastActive: serverTimestamp() }).catch(()=>{});
+    await updateDoc(doc(db, "users", u.uid), { online: true, lastActive: serverTimestamp() }).catch(() => {});
 
-    // listeners em tempo real
     listenFriends();
     listenChats();
   } else {
     currentUser = null;
-    currentUserData = null;
     authBox.classList.remove("hidden");
     userPanel.classList.add("hidden");
-    // remove listeners
-    if (friendsUnsubscribe) friendsUnsubscribe();
-    if (messagesUnsubscribe) messagesUnsubscribe();
-    if (chatsUnsubscribe) chatsUnsubscribe();
+    if (unsubFriends) unsubFriends();
+    if (unsubMessages) unsubMessages();
+    if (unsubChats) unsubChats();
   }
 });
 
-/* ---------------- FOTO DE PERFIL ---------------- */
+/* ---------- FOTO DE PERFIL ---------- */
 profilePicInput.onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file || !currentUser) return;
   try {
-    const file = e.target.files[0];
-    if (!file || !currentUser) return;
-    const pathRef = ref(storage, `profiles/${currentUser.uid}.jpg`);
-    await uploadBytes(pathRef, file);
-    const url = await getDownloadURL(pathRef);
+    const refPath = ref(storage, `profiles/${currentUser.uid}.jpg`);
+    await uploadBytes(refPath, file);
+    const url = await getDownloadURL(refPath);
     await updateDoc(doc(db, "users", currentUser.uid), { photoURL: url });
     userPic.src = url;
-  } catch (err) {
-    alert("Erro upload: " + err.message);
+  } catch (e) {
+    alert("Erro ao enviar imagem: " + e.message);
   }
 };
 
-/* ---------------- AMIGOS (FOLLOW/UNFOLLOW) ---------------- */
-async function listenFriends() {
+/* ---------- LISTA DE AMIGOS ---------- */
+function listenFriends() {
   if (!currentUser) return;
-  const userRef = doc(db, "users", currentUser.uid);
-  // onSnapshot keeps friends list in sync
-  friendsUnsubscribe = onSnapshot(userRef, async (snap) => {
-    const data = snap.data() || {};
+  const refUser = doc(db, "users", currentUser.uid);
+  unsubFriends = onSnapshot(refUser, async (snap) => {
+    const data = snap.data();
     currentUserData = data;
-    const friendIds = data.friends || [];
+    const ids = data.friends || [];
     friendsList.innerHTML = "";
 
-    // Load each friend doc (could be optimized)
-    for (let fid of friendIds) {
-      try {
-        const fSnap = await getDoc(doc(db, "users", fid));
-        if (!fSnap.exists()) continue;
-        const f = fSnap.data();
-        const el = document.createElement("div");
-        el.className = "user-item";
-        el.innerHTML = `
-          <img src="${f.photoURL || 'https://i.imgur.com/8Km9tLL.png'}" class="avatar" />
-          <div class="user-info">
-            <div class="name">${escapeHtml(f.displayName || f.email)}</div>
-            <div class="small">${f.online ? "🟢 online" : "⚫ offline"}</div>
-          </div>
-          <div class="actions">
-            <button class="openChat">Abrir</button>
-            <button class="unfriend">Remover</button>
-          </div>`;
-        el.querySelector(".openChat").onclick = () => openChat(fid, f);
-        el.querySelector(".unfriend").onclick = () => removeFriend(fid);
-        friendsList.appendChild(el);
-      } catch (e) { console.error(e); }
+    for (let id of ids) {
+      const fsnap = await getDoc(doc(db, "users", id));
+      if (!fsnap.exists()) continue;
+      const f = fsnap.data();
+      const div = document.createElement("div");
+      div.className = "user-item";
+      div.innerHTML = `
+        <img src="${f.photoURL || 'https://i.imgur.com/8Km9tLL.png'}" class="avatar">
+        <div class="user-info">
+          <div class="name">${escapeHtml(f.displayName)}</div>
+          <div class="small">${f.online ? "🟢 online" : "⚫ offline"}</div>
+        </div>
+        <div class="actions">
+          <button class="openChat">Chat</button>
+          <button class="unfriend">❌</button>
+        </div>`;
+      div.querySelector(".openChat").onclick = () => openChat(id, f);
+      div.querySelector(".unfriend").onclick = () => removeFriend(id);
+      friendsList.appendChild(div);
     }
   });
 }
 
-/* ---------------- LISTAR USUÁRIOS E SEGUIR ---------------- */
+/* ---------- LISTAR USUÁRIOS ---------- */
 tabUsers.onclick = async () => {
   tabUsers.classList.add("active"); tabFriends.classList.remove("active"); tabChats.classList.remove("active");
   usersList.classList.remove("hidden"); friendsList.classList.add("hidden"); chatsList.classList.add("hidden");
+
   const snap = await getDocs(collection(db, "users"));
   usersList.innerHTML = "";
   snap.forEach(docSnap => {
     const u = docSnap.data();
-    const uid = docSnap.id;
-    if (!currentUser || u.email === currentUser.email) return;
-    const el = document.createElement("div");
-    el.className = "user-item";
-    const isFriend = (currentUserData?.friends || []).includes(uid);
-    el.innerHTML = `
-      <img src="${u.photoURL || 'https://i.imgur.com/8Km9tLL.png'}" class="avatar" />
+    const id = docSnap.id;
+    if (id === currentUser.uid) return;
+    const div = document.createElement("div");
+    const isFriend = (currentUserData?.friends || []).includes(id);
+    div.className = "user-item";
+    div.innerHTML = `
+      <img src="${u.photoURL || 'https://i.imgur.com/8Km9tLL.png'}" class="avatar">
       <div class="user-info">
         <div class="name">${escapeHtml(u.displayName || u.email)}</div>
-        <div class="small">${u.bio || ''}</div>
+        <div class="small">${u.bio || ""}</div>
       </div>
       <div class="actions">
-        <button class="openChat">Abrir</button>
-        <button class="followBtn">${isFriend ? '✔️ Amigo' : '+ Seguir'}</button>
+        <button class="openChat">Chat</button>
+        <button class="followBtn">${isFriend ? "✔️ Amigo" : "+ Seguir"}</button>
       </div>`;
-    el.querySelector(".openChat").onclick = () => openChat(uid, u);
-    const followBtn = el.querySelector(".followBtn");
-    followBtn.onclick = () => toggleFriend(uid, u, followBtn);
-    usersList.appendChild(el);
+    div.querySelector(".openChat").onclick = () => openChat(id, u);
+    div.querySelector(".followBtn").onclick = () => toggleFriend(id, div.querySelector(".followBtn"));
+    usersList.appendChild(div);
   });
 };
 
-async function toggleFriend(uid, udata, btn) {
-  try {
-    const meRef = doc(db, "users", currentUser.uid);
-    const themRef = doc(db, "users", uid);
-    const meSnap = await getDoc(meRef);
-    const meData = meSnap.data();
-    const already = (meData?.friends || []).includes(uid);
-    if (already) {
-      await updateDoc(meRef, { friends: arrayRemove(uid) });
-      await updateDoc(themRef, { friends: arrayRemove(currentUser.uid) });
-      btn.textContent = "+ Seguir";
-    } else {
-      await updateDoc(meRef, { friends: arrayUnion(uid) });
-      await updateDoc(themRef, { friends: arrayUnion(currentUser.uid) });
-      btn.textContent = "✔️ Amigo";
-    }
-  } catch (e) { console.error(e); alert(e.message); }
+async function toggleFriend(uid, btn) {
+  const meRef = doc(db, "users", currentUser.uid);
+  const themRef = doc(db, "users", uid);
+  const meSnap = await getDoc(meRef);
+  const already = (meSnap.data()?.friends || []).includes(uid);
+  if (already) {
+    await updateDoc(meRef, { friends: arrayRemove(uid) });
+    await updateDoc(themRef, { friends: arrayRemove(currentUser.uid) });
+    btn.textContent = "+ Seguir";
+  } else {
+    await updateDoc(meRef, { friends: arrayUnion(uid) });
+    await updateDoc(themRef, { friends: arrayUnion(currentUser.uid) });
+    btn.textContent = "✔️ Amigo";
+  }
 }
 
 async function removeFriend(uid) {
   if (!confirm("Remover amigo?")) return;
-  try {
-    await updateDoc(doc(db, "users", currentUser.uid), { friends: arrayRemove(uid) });
-    await updateDoc(doc(db, "users", uid), { friends: arrayRemove(currentUser.uid) });
-  } catch (e) { console.error(e); }
+  await updateDoc(doc(db, "users", currentUser.uid), { friends: arrayRemove(uid) });
+  await updateDoc(doc(db, "users", uid), { friends: arrayRemove(currentUser.uid) });
 }
 
-/* ---------------- CHAT / MENSAGENS ---------------- */
+/* ---------- CHAT ---------- */
 function openChat(uid, userObj) {
   selectedUser = { uid, ...userObj };
   placeholder.classList.add("hidden");
   chatBox.classList.remove("hidden");
   chatWithName.textContent = userObj.displayName || userObj.email;
-  chatWithPic.src = userObj.photoURL || 'https://i.imgur.com/8Km9tLL.png';
+  chatWithPic.src = userObj.photoURL || "https://i.imgur.com/8Km9tLL.png";
   statusText.textContent = userObj.online ? "🟢 online" : "⚫ offline";
-  // unsubscribe previous messages listener
-  if (messagesUnsubscribe) messagesUnsubscribe();
-  // start listening
-  listenMessagesFor(uid);
+  if (unsubMessages) unsubMessages();
+  listenMessages(uid);
 }
 
 sendMsgBtn.onclick = async () => {
-  if (!messageInput.value.trim() || !selectedUser || !currentUser) return;
+  if (!messageInput.value.trim() || !selectedUser) return;
   const text = messageInput.value.trim();
   const chatId = [currentUser.uid, selectedUser.uid].sort().join("_");
-
-  try {
-    // Add message doc
-    await addDoc(collection(db, "chats", chatId, "messages"), {
-      from: currentUser.uid,
-      fromName: currentUserData?.displayName || currentUser.email.split("@")[0],
-      to: selectedUser.uid,
-      text,
-      createdAt: serverTimestamp()
-    });
-
-    // Update chat meta (conversations)
-    await setDoc(doc(db, "chats", chatId), {
-      participants: [currentUser.uid, selectedUser.uid],
-      lastMessage: text,
-      lastFrom: currentUser.uid,
-      lastFromName: currentUserData?.displayName || currentUser.email.split("@")[0],
-      lastUpdated: serverTimestamp()
-    }, { merge: true });
-
-    messageInput.value = "";
-  } catch (e) {
-    console.error(e);
-  }
+  await addDoc(collection(db, "chats", chatId, "messages"), {
+    from: currentUser.uid,
+    fromName: currentUserData.displayName,
+    to: selectedUser.uid,
+    text,
+    createdAt: serverTimestamp()
+  });
+  await setDoc(doc(db, "chats", chatId), {
+    participants: [currentUser.uid, selectedUser.uid],
+    lastMessage: text,
+    lastFrom: currentUser.uid,
+    lastFromName: currentUserData.displayName,
+    lastUpdated: serverTimestamp()
+  }, { merge: true });
+  messageInput.value = "";
 };
 
-function listenMessagesFor(otherUid) {
-  const chatId = [currentUser.uid, otherUid].sort().join("_");
+function listenMessages(uid) {
+  const chatId = [currentUser.uid, uid].sort().join("_");
   const q = query(collection(db, "chats", chatId, "messages"), orderBy("createdAt"));
-  messagesUnsubscribe = onSnapshot(q, snap => {
+  unsubMessages = onSnapshot(q, snap => {
     messagesDiv.innerHTML = "";
     snap.forEach(d => {
       const m = d.data();
-      const row = document.createElement("div");
-      row.className = "message " + (m.from === currentUser.uid ? "me" : "them");
-      // show name (fromName) above message
-      const who = document.createElement("div");
-      who.className = "msg-name";
-      who.textContent = m.fromName || (m.from === currentUser.uid ? currentUser.email : selectedUser.email);
-      const content = document.createElement("div");
-      content.className = "msg-text";
-      content.textContent = m.text;
-      row.appendChild(who);
-      row.appendChild(content);
-      messagesDiv.appendChild(row);
+      const msg = document.createElement("div");
+      msg.className = "message " + (m.from === currentUser.uid ? "me" : "them");
+      msg.innerHTML = `<div class="msg-name">${escapeHtml(m.fromName)}</div>
+                       <div class="msg-text">${escapeHtml(m.text)}</div>`;
+      messagesDiv.appendChild(msg);
     });
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   });
 }
 
-/* ---------------- LISTA DE CONVERSAS (META) ---------------- */
+/* ---------- LISTA DE CONVERSAS ---------- */
 function listenChats() {
-  if (!currentUser) return;
-  // listen to chats where current user participates
   const q = query(collection(db, "chats"), where("participants", "array-contains", currentUser.uid), orderBy("lastUpdated", "desc"));
-  chatsUnsubscribe = onSnapshot(q, async snap => {
+  unsubChats = onSnapshot(q, async snap => {
     chatsList.innerHTML = "";
-    if (snap.empty) {
-      chatsList.innerHTML = `<div class="empty">Sem conversas</div>`;
-      return;
-    }
-    snap.forEach(async docSnap => {
-      const c = docSnap.data();
-      const otherId = c.participants.find(p => p !== currentUser.uid);
+    if (snap.empty) chatsList.innerHTML = `<div class="small">Sem conversas</div>`;
+    for (const c of snap.docs) {
+      const chat = c.data();
+      const otherId = chat.participants.find(x => x !== currentUser.uid);
       const otherSnap = await getDoc(doc(db, "users", otherId));
-      const other = otherSnap.exists() ? otherSnap.data() : { displayName: otherId, photoURL: ''};
-      const el = document.createElement("div");
-      el.className = "chat-item";
-      el.innerHTML = `
-        <img src="${other.photoURL || 'https://i.imgur.com/8Km9tLL.png'}" class="avatar" />
-        <div class="chat-info">
-          <div class="name">${escapeHtml(other.displayName || other.email)}</div>
-          <div class="small">${escapeHtml(c.lastMessage || '')}</div>
-        </div>
-        <div class="meta">
-          <div class="small">${c.lastFromName || ''}</div>
+      const other = otherSnap.data();
+      const div = document.createElement("div");
+      div.className = "user-item";
+      div.innerHTML = `
+        <img src="${other.photoURL || 'https://i.imgur.com/8Km9tLL.png'}" class="avatar">
+        <div class="user-info">
+          <div class="name">${escapeHtml(other.displayName)}</div>
+          <div class="small">${escapeHtml(chat.lastMessage || "")}</div>
         </div>`;
-      el.onclick = () => openChat(otherId, other);
-      chatsList.appendChild(el);
-    });
+      div.onclick = () => openChat(otherId, other);
+      chatsList.appendChild(div);
+    }
   });
 }
 
-/* ---------------- UTIL ---------------- */
+/* ---------- UTIL ---------- */
 function escapeHtml(s) {
-  if (!s) return "";
-  return s.replace(/[&<>"'`]/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;', '`':'&#96;'}[m]));
-                        }
+  return s ? s.replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])) : "";
+}
