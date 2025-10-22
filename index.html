@@ -8,7 +8,7 @@
 </head>
 <body>
   <div id="app">
-    <h1>🔥 Mini Rede Social</h1>
+    <h1>🔥 Rede Social Firebase</h1>
 
     <div id="auth-section">
       <h2>Entrar / Criar conta</h2>
@@ -19,8 +19,11 @@
     </div>
 
     <div id="chat-section" class="hidden">
-      <h2>Bem-vindo, <span id="userEmail"></span></h2>
-      <button id="logoutBtn">Sair</button>
+      <div class="top-bar">
+        <h3><span id="userEmail"></span> (online)</h3>
+        <input type="file" id="profilePic" accept="image/*">
+        <button id="logoutBtn">Sair</button>
+      </div>
 
       <h3>Procurar usuários</h3>
       <input id="searchUser" type="text" placeholder="Digite o email...">
@@ -35,7 +38,7 @@
     </div>
   </div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDK -->
   <script type="module" src="script.js"></script>
 </body>
 </html>
