@@ -1,142 +1,134 @@
-// Arquivo: script.js (FINALIZADO com credenciais e Tabela: 'todos')
+// Importações Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDocs, collection, query, where, addDoc, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
-// --- CONFIGURAÇÃO DO SUPABASE ---
-const SUPABASE_URL = 'https://nkidvwxkzhvscsisztsa.supabase.co'; 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5raWR2d3hremh2c2NzaXN6dHNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNTAzMzYsImV4cCI6MjA3NjYyNjMzNn0.TXucPWNRbkEAweGzn2Zi_jc8R_U1t70eRn4SQ1YWTdc'; 
+// Configuração Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBI_4n8aBT9ZPiLy8cwgiQDtD0_CYSKk4E",
+  authDomain: "videot-2fcec.firebaseapp.com",
+  projectId: "videot-2fcec",
+  storageBucket: "videot-2fcec.firebasestorage.app",
+  messagingSenderId: "583396995831",
+  appId: "1:583396995831:web:6182575e28ea628cc259f2",
+  measurementId: "G-2ERH0XEGSX"
+};
 
-// Inicializa o cliente Supabase
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-// --------------------------------------------------------
+// Inicializa Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
+// Elementos da interface
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const signupBtn = document.getElementById("signupBtn");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const chatSection = document.getElementById("chat-section");
+const authSection = document.getElementById("auth-section");
+const userEmail = document.getElementById("userEmail");
+const searchInput = document.getElementById("searchUser");
+const searchResults = document.getElementById("searchResults");
+const chatBox = document.getElementById("chatBox");
+const chatWith = document.getElementById("chatWith");
+const messagesDiv = document.getElementById("messages");
+const msgInput = document.getElementById("messageInput");
+const sendBtn = document.getElementById("sendMsg");
 
-document.addEventListener('DOMContentLoaded', () => {
-    const postButton = document.getElementById('post-button');
-    const postTextarea = document.getElementById('post-text');
-    const feed = document.getElementById('feed');
-    // NOME DA TABELA AJUSTADO PARA 'todos'
-    const TABLE_NAME = 'todos'; 
+let currentUser = null;
+let selectedUser = null;
 
-    // Função de utilidade para criar a estrutura HTML de um post
-    function createPostElement(post) {
-        const postElement = document.createElement('div');
-        postElement.classList.add('post-card');
-        postElement.dataset.id = post.id; 
-
-        postElement.innerHTML = `
-            <div class="post-header">
-                <img src="https://via.placeholder.com/40" alt="Avatar">
-                <span class="username">${post.username}</span>
-            </div>
-            <p class="post-content">${post.content}</p>
-            <div class="post-actions">
-                <button class="like-button">Curtir (${post.likes})</button>
-            </div>
-        `;
-
-        // Adiciona o listener de like
-        postElement.querySelector('.like-button').addEventListener('click', handleLike);
-        return postElement;
-    }
-
-    // --- 1. CARREGAR POSTS EXISTENTES AO INICIAR ---
-    async function loadInitialPosts() {
-        // Busca na tabela 'todos'
-        const { data: posts, error } = await supabase
-            .from(TABLE_NAME)
-            .select('*')
-            .order('created_at', { ascending: false }) 
-            .limit(50);
-
-        if (error) {
-            console.error('Erro ao carregar posts:', error);
-            feed.innerHTML = `<p>Erro ao carregar o feed. Verifique se a tabela \`${TABLE_NAME}\` existe e tem a política RLS de SELECT (TRUE).</p>`;
-            return;
-        }
-
-        posts.forEach(post => {
-            const postElement = createPostElement(post);
-            feed.appendChild(postElement);
-        });
-    }
-
-    // --- 2. FUNCIONALIDADE DE POSTAGEM (INSERIR NO BANCO) ---
-    postButton.addEventListener('click', async () => {
-        const content = postTextarea.value.trim();
-        const fixedUsername = '@ConectaHubUser'; 
-
-        if (content) {
-            // Insere na tabela 'todos'
-            const { error } = await supabase
-                .from(TABLE_NAME)
-                .insert([
-                    { username: fixedUsername, content: content, likes: 0 } 
-                    // Assumindo que 'todos' tem as colunas 'username', 'content' e 'likes'
-                ]);
-
-            if (error) {
-                console.error('Erro ao publicar:', error);
-                alert('Não foi possível publicar. O erro é provavelmente uma FALHA na RLS de INSERT. Verifique o console.');
-                return;
-            }
-
-            postTextarea.value = '';
-            
-        } else {
-            alert('Por favor, escreva algo antes de publicar!');
-        }
+// Criar conta
+signupBtn.onclick = async () => {
+  try {
+    const userCred = await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+    await setDoc(doc(db, "users", userCred.user.uid), {
+      email: userCred.user.email,
+      createdAt: new Date()
     });
+    alert("Conta criada com sucesso!");
+  } catch (e) {
+    alert(e.message);
+  }
+};
 
-    // --- 3. FUNCIONALIDADE DE LIKE (ATUALIZAR O BANCO) ---
-    async function handleLike() {
-        const button = this;
-        const postCard = button.closest('.post-card');
-        const postId = parseInt(postCard.dataset.id);
+// Login
+loginBtn.onclick = async () => {
+  try {
+    await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+  } catch (e) {
+    alert(e.message);
+  }
+};
 
-        let currentLikes = parseInt(button.textContent.match(/\((\d+)\)/)[1]);
-        let newLikes = currentLikes + 1;
-        
-        // Atualiza na tabela 'todos'
-        const { error } = await supabase
-            .from(TABLE_NAME)
-            .update({ likes: newLikes })
-            .eq('id', postId);
+// Logout
+logoutBtn.onclick = () => signOut(auth);
 
-        if (error) {
-             console.error('Erro ao curtir:', error);
-             return;
-        }
-    }
-
-    // --- 4. TEMPO REAL (ASSINATURA DO SUPABASE) ---
-    function subscribeToRealtime() {
-        // Assina mudanças na tabela 'todos'
-        supabase
-            .channel(`public:${TABLE_NAME}`) 
-            .on('postgres_changes', { event: '*', schema: 'public', table: TABLE_NAME }, (payload) => {
-                
-                if (payload.eventType === 'INSERT') {
-                    // Novo post inserido
-                    const newPost = payload.new;
-                    const postElement = createPostElement(newPost);
-                    feed.prepend(postElement); 
-                    
-                } else if (payload.eventType === 'UPDATE') {
-                    // Post existente foi atualizado (ex: um like)
-                    const updatedPost = payload.new;
-                    const existingCard = document.querySelector(`.post-card[data-id="${updatedPost.id}"]`);
-                    
-                    if (existingCard) {
-                        // Atualiza o botão de like
-                        const likeButton = existingCard.querySelector('.like-button');
-                        likeButton.textContent = `Curtir (${updatedPost.likes})`;
-                        likeButton.style.color = updatedPost.likes > 0 ? '#1877f2' : '#606770'; 
-                    }
-                }
-            })
-            .subscribe();
-    }
-    
-    loadInitialPosts();
-    subscribeToRealtime();
+// Autenticação em tempo real
+onAuthStateChanged(auth, user => {
+  if (user) {
+    currentUser = user;
+    userEmail.textContent = user.email;
+    authSection.classList.add("hidden");
+    chatSection.classList.remove("hidden");
+  } else {
+    currentUser = null;
+    authSection.classList.remove("hidden");
+    chatSection.classList.add("hidden");
+  }
 });
-        
+
+// Pesquisar usuários
+searchInput.oninput = async () => {
+  const q = query(collection(db, "users"), where("email", ">=", searchInput.value), where("email", "<=", searchInput.value + "\uf8ff"));
+  const snap = await getDocs(q);
+  searchResults.innerHTML = "";
+  snap.forEach(docSnap => {
+    const u = docSnap.data();
+    if (u.email !== currentUser.email) {
+      const div = document.createElement("div");
+      div.textContent = u.email;
+      div.classList.add("user-item");
+      div.onclick = () => openChat(docSnap.id, u.email);
+      searchResults.appendChild(div);
+    }
+  });
+};
+
+// Abrir chat
+function openChat(uid, email) {
+  selectedUser = { uid, email };
+  chatWith.textContent = email;
+  chatBox.classList.remove("hidden");
+  listenMessages();
+}
+
+// Enviar mensagem
+sendBtn.onclick = async () => {
+  if (!msgInput.value.trim()) return;
+  const chatId = [currentUser.uid, selectedUser.uid].sort().join("_");
+  await addDoc(collection(db, "chats", chatId, "messages"), {
+    from: currentUser.uid,
+    to: selectedUser.uid,
+    text: msgInput.value,
+    createdAt: new Date()
+  });
+  msgInput.value = "";
+}
+
+// Escutar mensagens em tempo real
+function listenMessages() {
+  const chatId = [currentUser.uid, selectedUser.uid].sort().join("_");
+  const q = query(collection(db, "chats", chatId, "messages"), orderBy("createdAt"));
+  onSnapshot(q, snap => {
+    messagesDiv.innerHTML = "";
+    snap.forEach(docSnap => {
+      const msg = docSnap.data();
+      const div = document.createElement("div");
+      div.textContent = (msg.from === currentUser.uid ? "Você: " : selectedUser.email + ": ") + msg.text;
+      div.classList.add(msg.from === currentUser.uid ? "me" : "them");
+      messagesDiv.appendChild(div);
+    });
+  });
+}
