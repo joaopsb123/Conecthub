@@ -3,42 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rede Social Firebase</title>
+  <title>🔥 Rede Social Firebase</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="app">
     <h1>🔥 Rede Social Firebase</h1>
 
+    <!-- Login / Signup -->
     <div id="auth-section">
-      <h2>Entrar / Criar conta</h2>
       <input id="email" type="email" placeholder="Email">
       <input id="password" type="password" placeholder="Senha">
+      <input id="displayName" type="text" placeholder="Nome de usuário (opcional)">
+      <textarea id="bio" placeholder="Sua bio..."></textarea>
       <button id="signupBtn">Criar Conta</button>
       <button id="loginBtn">Entrar</button>
     </div>
 
+    <!-- Chat principal -->
     <div id="chat-section" class="hidden">
       <div class="top-bar">
-        <h3><span id="userEmail"></span> (online)</h3>
+        <div class="profile">
+          <img id="userPic" src="https://i.imgur.com/8Km9tLL.png" class="avatar">
+          <span id="userName"></span>
+        </div>
         <input type="file" id="profilePic" accept="image/*">
         <button id="logoutBtn">Sair</button>
       </div>
 
-      <h3>Procurar usuários</h3>
-      <input id="searchUser" type="text" placeholder="Digite o email...">
-      <div id="searchResults"></div>
+      <div class="tabs">
+        <button id="tabUsers">Usuários</button>
+        <button id="tabChats">Conversas</button>
+      </div>
+
+      <div id="usersList"></div>
+      <div id="chatsList" class="hidden"></div>
 
       <div id="chatBox" class="hidden">
-        <h3>Chat com <span id="chatWith"></span></h3>
+        <h3><span id="chatWith"></span> <small id="statusText"></small></h3>
         <div id="messages"></div>
         <input id="messageInput" type="text" placeholder="Escreva uma mensagem...">
+        <input type="file" id="imageInput" accept="image/*">
         <button id="sendMsg">Enviar</button>
       </div>
     </div>
   </div>
 
-  <!-- Firebase SDK -->
   <script type="module" src="script.js"></script>
 </body>
 </html>
