@@ -1,49 +1,41 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ConectaHub - Seu Feed de Notícias</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rede Social Firebase</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div id="app">
+    <h1>🔥 Mini Rede Social</h1>
 
-    <header>
-        <div class="logo">ConectaHub</div>
-        <nav>
-            <a href="#">Feed</a>
-            <a href="#">Perfil</a>
-            <a href="#">Notificações</a>
-        </nav>
-    </header>
+    <div id="auth-section">
+      <h2>Entrar / Criar conta</h2>
+      <input id="email" type="email" placeholder="Email">
+      <input id="password" type="password" placeholder="Senha">
+      <button id="signupBtn">Criar Conta</button>
+      <button id="loginBtn">Entrar</button>
+    </div>
 
-    <main class="container">
-        <section class="new-post-box">
-            <h2>O que está pensando?</h2>
-            <textarea id="post-text" placeholder="Escreva sua mensagem aqui..."></textarea>
-            <button id="post-button">Publicar</button>
-        </section>
+    <div id="chat-section" class="hidden">
+      <h2>Bem-vindo, <span id="userEmail"></span></h2>
+      <button id="logoutBtn">Sair</button>
 
-        <section id="feed" class="feed">
-            <div class="post-card">
-                <div class="post-header">
-                    <img src="https://via.placeholder.com/40" alt="Avatar">
-                    <span class="username">@UsuarioHub</span>
-                </div>
-                <p class="post-content">Olá, mundo! Este é um post de exemplo. Clique no botão "Publicar" acima para adicionar o seu próprio!</p>
-                <div class="post-actions">
-                    <button class="like-button">Curtir (0)</button>
-                </div>
-            </div>
+      <h3>Procurar usuários</h3>
+      <input id="searchUser" type="text" placeholder="Digite o email...">
+      <div id="searchResults"></div>
 
-            </section>
-    </main>
+      <div id="chatBox" class="hidden">
+        <h3>Chat com <span id="chatWith"></span></h3>
+        <div id="messages"></div>
+        <input id="messageInput" type="text" placeholder="Escreva uma mensagem...">
+        <button id="sendMsg">Enviar</button>
+      </div>
+    </div>
+  </div>
 
-    <footer>
-        <p>&copy; 2025 ConectaHub. Todos os direitos reservados.</p>
-    </footer>
-
-    <script src="script.js"></script>
+  <!-- Firebase SDKs -->
+  <script type="module" src="script.js"></script>
 </body>
-  </html>
-  
+</html>
