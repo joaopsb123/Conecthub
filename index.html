@@ -3,69 +3,143 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Foguinho Diário</title>
+  <title>Foguinho Social</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="container">
-    <h1>🔥 Foguinho Diário</h1>
+  <div id="app">
+    <!-- SPLASH / AUTH -->
+    <section id="authScreen" class="card center">
+      <h1>Foguinho</h1>
+      <p class="muted">Rede privada por convite — acende o teu foguinho 🔥</p>
 
-    <section class="controls">
-      <label for="speakText">O que queres dizer?</label>
-      <textarea id="speakText" rows="3" placeholder="Escreve algo para falar...">Acendi o foguinho! 🔥</textarea>
-
-      <div class="buttons">
-        <button id="speakBtn">🗣️ Falar</button>
-        <button id="lightBtn">🔥 Acender Foguinho</button>
-        <button id="registerDayBtn" title="Registar o dia e atualizar sequência">📅 Registar Dia</button>
+      <div id="authTabs" class="tabs">
+        <button data-tab="login" class="tab active">Entrar</button>
+        <button data-tab="signup" class="tab">Registar</button>
       </div>
 
-      <p class="hint">Ao registar o dia, a sequência (streak) atualiza. Abre a app diariamente para manter o streak.</p>
+      <form id="loginForm" class="form">
+        <input id="loginEmail" type="email" placeholder="Email" required />
+        <input id="loginPassword" type="password" placeholder="Senha" required />
+        <button id="loginBtn" class="primary">Entrar</button>
+      </form>
+
+      <form id="signupForm" class="form hidden">
+        <input id="signupName" type="text" placeholder="Nome" required />
+        <input id="signupEmail" type="email" placeholder="Email" required />
+        <input id="signupPassword" type="password" placeholder="Senha (mín 6)" required minlength="6" />
+        <input id="signupInvite" type="text" placeholder="Código de convite" required />
+        <button id="signupBtn" class="primary">Criar conta</button>
+      </form>
+
+      <div class="small muted">Se recebes um convite, usa o código para te registares.</div>
     </section>
 
-    <section class="streak">
-      <h2>Sequência diária</h2>
-      <div id="flamesContainer" class="flames"></div>
-      <div class="streak-info">
-        <span id="streakCount">Streak: 0 dias</span>
-        <span id="lastDate">Último registo: —</span>
+    <!-- MAIN APP -->
+    <main id="mainApp" class="hidden">
+      <header class="topbar">
+        <div class="brand">
+          <strong>🔥 Foguinho</strong>
+          <span class="muted small">privado · convites</span>
+        </div>
+
+        <div class="search-wrap">
+          <input id="searchInput" placeholder="Procurar utilizadores..." />
+        </div>
+
+        <div class="actions">
+          <button id="newInviteBtn" title="Gerar convite">➕ Convite</button>
+          <button id="profileBtn" title="Perfil">Perfil</button>
+          <button id="logoutBtn" title="Sair">Sair</button>
+        </div>
+      </header>
+
+      <div class="layout">
+        <!-- Left: feed -->
+        <section class="feed">
+          <div id="feedList" class="feed-list">
+            <!-- cards de amigos / actividades -->
+          </div>
+
+          <div class="fogo-panel">
+            <div id="bigFire" class="big-fire" title="Acende o foguinho">🔥</div>
+            <div class="fire-controls">
+              <button id="registerTodayBtn">Registar Dia</button>
+              <button id="sendFireBtn">Enviar foguinho a um amigo</button>
+            </div>
+            <div id="streakInfo" class="muted small">Streak: —</div>
+          </div>
+        </section>
+
+        <!-- Right: sidebar -->
+        <aside class="sidebar">
+          <section class="card small">
+            <h3>Missões</h3>
+            <ul id="missionsList" class="missions"></ul>
+          </section>
+
+          <section class="card small">
+            <h3>Mensagens</h3>
+            <div id="conversationsList" class="conversations"></div>
+          </section>
+
+          <section class="card small">
+            <h3>Convites</h3>
+            <div id="invitesList" class="invites"></div>
+          </section>
+        </aside>
       </div>
-    </section>
+    </main>
 
-    <footer>
-      <small>App simples — offline + usa Firebase Analytics</small>
-    </footer>
-  </main>
+    <!-- PROFILE / CHAT MODALS -->
+    <div id="modals">
+      <!-- Profile -->
+      <div id="profileModal" class="modal hidden">
+        <div class="modal-card">
+          <h3>Perfil</h3>
+          <div class="profile-row">
+            <img id="profilePic" src="" alt="avatar" class="avatar" />
+            <div>
+              <input id="profileName" placeholder="Nome" />
+              <input id="profileEmail" disabled />
+              <input id="profilePicFile" type="file" accept="image/*" />
+              <button id="saveProfileBtn">Guardar</button>
+            </div>
+          </div>
+          <div class="muted small">Pontuação: <span id="profilePoints">0</span></div>
+          <button class="closeModal" data-target="profileModal">Fechar</button>
+        </div>
+      </div>
 
-  <!-- Código do Firebase (modular via CDN) e app.js -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics.js";
+      <!-- Chat -->
+      <div id="chatModal" class="modal hidden">
+        <div class="modal-card chat-card">
+          <h3 id="chatTitle">Chat</h3>
+          <div id="chatMessages" class="chat-messages"></div>
+          <div class="chat-input">
+            <input id="chatText" placeholder="Escreve..." />
+            <button id="chatSendBtn">Enviar</button>
+          </div>
+          <button class="closeModal" data-target="chatModal">Fechar</button>
+        </div>
+      </div>
 
-    // --- CONFIGURAÇÃO DO FIREBASE (substitui pelas tuas credenciais já dadas) ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyBI_4n8aBT9ZPiLy8cwgiQDtD0_CYSKk4E",
-      authDomain: "videot-2fcec.firebaseapp.com",
-      projectId: "videot-2fcec",
-      storageBucket: "videot-2fcec.firebasestorage.app",
-      messagingSenderId: "583396995831",
-      appId: "1:583396995831:web:6182575e28ea628cc259f2",
-      measurementId: "G-2ERH0XEGSX"
-    };
+      <!-- Invite generator -->
+      <div id="inviteModal" class="modal hidden">
+        <div class="modal-card">
+          <h3>Gerar convite</h3>
+          <p class="muted small">Gera um código que poderás partilhar. Quem usar o código poderá registar-se.</p>
+          <button id="generateInviteBtn">Gerar código</button>
+          <div id="newInviteCode" class="muted"></div>
+          <button class="closeModal" data-target="inviteModal">Fechar</button>
+        </div>
+      </div>
 
-    const app = initializeApp(firebaseConfig);
-    // O getAnalytics pode falhar em ambientes sem suporte (ex: file://) — tratamos safe.
-    try {
-      getAnalytics(app);
-      console.log('Firebase Analytics inicializado.');
-    } catch (e) {
-      console.warn('Analytics não disponível neste ambiente:', e?.message ?? e);
-    }
+    </div>
 
-    // Exportamos a app para o script principal poder usar (opcional)
-    window.__FIREBASE_APP = app;
-  </script>
+  </div>
 
-  <script src="app.js"></script>
+  <!-- Firebase + App JS -->
+  <script type="module" src="app.js"></script>
 </body>
 </html>
