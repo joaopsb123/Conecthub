@@ -1,87 +1,71 @@
-html
-<!DOCTYPE html>
-<html lang="pt-BR">
+<!doctype html>
+<html lang="pt-PT">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pintogram</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Foguinho Diário</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="app">
-    <header class="navbar">
-      <h1>Pintogram</h1>
-      <input id="searchInput" type="text" placeholder="Pesquisar...">
-      <button id="logoutBtn">Sair</button>
-    </header>
+  <main class="container">
+    <h1>🔥 Foguinho Diário</h1>
 
-    <main class="main-content">
-      <!-- Login / Cadastro -->
-      <section id="auth-box" class="auth-box">
-        <h2>Entrar ou Cadastrar</h2>
-        <input id="email" type="email" placeholder="Email">
-        <input id="password" type="password" placeholder="Senha">
-        <input id="displayName" type="text" placeholder="Nome (opcional)">
-        <textarea id="bio" placeholder="Bio (opcional)"></textarea>
-        <div class="btn-group">
-          <button id="signupBtn">Cadastrar</button>
-          <button id="loginBtn">Entrar</button>
-        </div>
-      </section>
+    <section class="controls">
+      <label for="speakText">O que queres dizer?</label>
+      <textarea id="speakText" rows="3" placeholder="Escreve algo para falar...">Acendi o foguinho! 🔥</textarea>
 
-      <!-- Painel do Usuário -->
-      <section id="user-panel" class="hidden user-panel">
-        <div class="profile">
-          <img id="userPic" src="https://i.imgur.com/8Km9tLL.png" class="avatar">
-          <div>
-            <h3 id="userName">Usuário</h3>
-            <p id="userEmailLabel" class="muted">email</p>
-          </div>
-          <input id="profilePic" type="file" accept="image/*">
-        </div>
+      <div class="buttons">
+        <button id="speakBtn">🗣️ Falar</button>
+        <button id="lightBtn">🔥 Acender Foguinho</button>
+        <button id="registerDayBtn" title="Registar o dia e atualizar sequência">📅 Registar Dia</button>
+      </div>
 
-        <nav class="tabs">
-          <button id="tabFeed" class="active">Feed</button>
-          <button id="tabReels">Reels</button>
-          <button id="tabUsers">Usuários</button>
-          <button id="tabChat">Chat</button>
-        </nav>
+      <p class="hint">Ao registar o dia, a sequência (streak) atualiza. Abre a app diariamente para manter o streak.</p>
+    </section>
 
-        <section id="feedSection" class="feed">
-          <div id="postComposer" class="composer">
-            <input id="postCaption" type="text" placeholder="Escreva algo...">
-            <input id="postMedia" type="file" accept="image/*,video/*">
-            <button id="uploadPost">Publicar</button>
-          </div>
-          <div id="feedPosts" class="post-list"></div>
-        </section>
+    <section class="streak">
+      <h2>Sequência diária</h2>
+      <div id="flamesContainer" class="flames"></div>
+      <div class="streak-info">
+        <span id="streakCount">Streak: 0 dias</span>
+        <span id="lastDate">Último registo: —</span>
+      </div>
+    </section>
 
-        <section id="reelsSection" class="feed hidden">
-          <div id="feedReels" class="post-list"></div>
-        </section>
+    <footer>
+      <small>App simples — offline + usa Firebase Analytics</small>
+    </footer>
+  </main>
 
-        <section id="usersSection" class="feed hidden">
-          <div id="usersList"></div>
-        </section>
+  <!-- Código do Firebase (modular via CDN) e app.js -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics.js";
 
-        <section id="chatSection" class="chat hidden">
-          <div id="chatHeader" class="chat-header">
-            <img id="chatWithPic" class="avatar">
-            <div>
-              <h3 id="chatWithName"></h3>
-              <p id="statusText" class="muted">offline</p>
-            </div>
-          </div>
-          <div id="messages" class="messages"></div>
-          <div class="composer">
-            <input id="messageInput" type="text" placeholder="Mensagem...">
-            <button id="sendMsg">Enviar</button>
-          </div>
-        </section>
-      </section>
-    </main>
-  </div>
+    // --- CONFIGURAÇÃO DO FIREBASE (substitui pelas tuas credenciais já dadas) ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyBI_4n8aBT9ZPiLy8cwgiQDtD0_CYSKk4E",
+      authDomain: "videot-2fcec.firebaseapp.com",
+      projectId: "videot-2fcec",
+      storageBucket: "videot-2fcec.firebasestorage.app",
+      messagingSenderId: "583396995831",
+      appId: "1:583396995831:web:6182575e28ea628cc259f2",
+      measurementId: "G-2ERH0XEGSX"
+    };
 
-  <script type="module" src="script.js"></script>
+    const app = initializeApp(firebaseConfig);
+    // O getAnalytics pode falhar em ambientes sem suporte (ex: file://) — tratamos safe.
+    try {
+      getAnalytics(app);
+      console.log('Firebase Analytics inicializado.');
+    } catch (e) {
+      console.warn('Analytics não disponível neste ambiente:', e?.message ?? e);
+    }
+
+    // Exportamos a app para o script principal poder usar (opcional)
+    window.__FIREBASE_APP = app;
+  </script>
+
+  <script src="app.js"></script>
 </body>
-              </html>
+</html>
