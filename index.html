@@ -1,145 +1,38 @@
-<!doctype html>
-<html lang="pt-PT">
+<!DOCTYPE html>
+<html lang="pt">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Foguinho Social</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foguinho Social 🔥</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="app">
-    <!-- SPLASH / AUTH -->
-    <section id="authScreen" class="card center">
-      <h1>Foguinho</h1>
-      <p class="muted">Rede privada por convite — acende o teu foguinho 🔥</p>
 
-      <div id="authTabs" class="tabs">
-        <button data-tab="login" class="tab active">Entrar</button>
-        <button data-tab="signup" class="tab">Registar</button>
-      </div>
+  <div class="container" id="login-screen">
+    <h1>🔥 Foguinho Social</h1>
 
-      <form id="loginForm" class="form">
-        <input id="loginEmail" type="email" placeholder="Email" required />
-        <input id="loginPassword" type="password" placeholder="Senha" required />
-        <button id="loginBtn" class="primary">Entrar</button>
-      </form>
-
-      <form id="signupForm" class="form hidden">
-        <input id="signupName" type="text" placeholder="Nome" required />
-        <input id="signupEmail" type="email" placeholder="Email" required />
-        <input id="signupPassword" type="password" placeholder="Senha (mín 6)" required minlength="6" />
-        <input id="signupInvite" type="text" placeholder="Código de convite" required />
-        <button id="signupBtn" class="primary">Criar conta</button>
-      </form>
-
-      <div class="small muted">Se recebes um convite, usa o código para te registares.</div>
-    </section>
-
-    <!-- MAIN APP -->
-    <main id="mainApp" class="hidden">
-      <header class="topbar">
-        <div class="brand">
-          <strong>🔥 Foguinho</strong>
-          <span class="muted small">privado · convites</span>
-        </div>
-
-        <div class="search-wrap">
-          <input id="searchInput" placeholder="Procurar utilizadores..." />
-        </div>
-
-        <div class="actions">
-          <button id="newInviteBtn" title="Gerar convite">➕ Convite</button>
-          <button id="profileBtn" title="Perfil">Perfil</button>
-          <button id="logoutBtn" title="Sair">Sair</button>
-        </div>
-      </header>
-
-      <div class="layout">
-        <!-- Left: feed -->
-        <section class="feed">
-          <div id="feedList" class="feed-list">
-            <!-- cards de amigos / actividades -->
-          </div>
-
-          <div class="fogo-panel">
-            <div id="bigFire" class="big-fire" title="Acende o foguinho">🔥</div>
-            <div class="fire-controls">
-              <button id="registerTodayBtn">Registar Dia</button>
-              <button id="sendFireBtn">Enviar foguinho a um amigo</button>
-            </div>
-            <div id="streakInfo" class="muted small">Streak: —</div>
-          </div>
-        </section>
-
-        <!-- Right: sidebar -->
-        <aside class="sidebar">
-          <section class="card small">
-            <h3>Missões</h3>
-            <ul id="missionsList" class="missions"></ul>
-          </section>
-
-          <section class="card small">
-            <h3>Mensagens</h3>
-            <div id="conversationsList" class="conversations"></div>
-          </section>
-
-          <section class="card small">
-            <h3>Convites</h3>
-            <div id="invitesList" class="invites"></div>
-          </section>
-        </aside>
-      </div>
-    </main>
-
-    <!-- PROFILE / CHAT MODALS -->
-    <div id="modals">
-      <!-- Profile -->
-      <div id="profileModal" class="modal hidden">
-        <div class="modal-card">
-          <h3>Perfil</h3>
-          <div class="profile-row">
-            <img id="profilePic" src="" alt="avatar" class="avatar" />
-            <div>
-              <input id="profileName" placeholder="Nome" />
-              <input id="profileEmail" disabled />
-              <input id="profilePicFile" type="file" accept="image/*" />
-              <button id="saveProfileBtn">Guardar</button>
-            </div>
-          </div>
-          <div class="muted small">Pontuação: <span id="profilePoints">0</span></div>
-          <button class="closeModal" data-target="profileModal">Fechar</button>
-        </div>
-      </div>
-
-      <!-- Chat -->
-      <div id="chatModal" class="modal hidden">
-        <div class="modal-card chat-card">
-          <h3 id="chatTitle">Chat</h3>
-          <div id="chatMessages" class="chat-messages"></div>
-          <div class="chat-input">
-            <input id="chatText" placeholder="Escreve..." />
-            <button id="chatSendBtn">Enviar</button>
-          </div>
-          <button class="closeModal" data-target="chatModal">Fechar</button>
-        </div>
-      </div>
-
-      <!-- Invite generator -->
-      <div id="inviteModal" class="modal hidden">
-        <div class="modal-card">
-          <h3>Gerar convite</h3>
-          <p class="muted small">Gera um código que poderás partilhar. Quem usar o código poderá registar-se.</p>
-          <button id="generateInviteBtn">Gerar código</button>
-          <div id="newInviteCode" class="muted"></div>
-          <button class="closeModal" data-target="inviteModal">Fechar</button>
-        </div>
-      </div>
-
+    <div id="login-form">
+      <input type="email" id="login-email" placeholder="Email">
+      <input type="password" id="login-password" placeholder="Senha">
+      <button id="login-btn">Entrar</button>
+      <p>Ainda não tens conta? <span id="go-register">Registar</span></p>
     </div>
 
+    <div id="register-form" class="hidden">
+      <input type="text" id="register-username" placeholder="Nome de utilizador">
+      <input type="email" id="register-email" placeholder="Email">
+      <input type="password" id="register-password" placeholder="Senha">
+      <button id="register-btn">Criar conta</button>
+      <p>Já tens conta? <span id="go-login">Entrar</span></p>
+    </div>
   </div>
 
-  <!-- Firebase + App JS -->
+  <div class="container hidden" id="app-screen">
+    <h2>Bem-vindo ao Foguinho Social 🔥</h2>
+    <p id="welcome-text"></p>
+    <button id="logout-btn">Sair</button>
+  </div>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>
